@@ -11,3 +11,11 @@ for i in range(size):
             print(" ", end="")
     
     print()
+
+OUTPUT:
+
+rows=4
+*****
+*   *
+*   *
+*****
