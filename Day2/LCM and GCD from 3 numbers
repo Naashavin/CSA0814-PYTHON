@@ -1,0 +1,15 @@
+import math
+def lcm_of_three_numbers(a, b, c):
+    return abs(a*b*c) // math.gcd(a, math.gcd(b, c))
+def gcd_of_three_numbers(a, b, c):
+    return math.gcd(a, math.gcd(b, c))
+num1 = 12
+num2 = 18
+num3 = 24
+lcm_result = lcm_of_three_numbers(num1, num2, num3)
+gcd_result = gcd_of_three_numbers(num1, num2, num3)
+print(f"LCM  is: {lcm_result}")
+print(f"GCD  is: {gcd_result}")
+Output:
+GCD is: 6
+LCM is: 72
