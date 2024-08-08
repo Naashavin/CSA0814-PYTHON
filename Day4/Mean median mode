@@ -1,0 +1,15 @@
+import statistics
+s=[1,3,4,5,7,9,2]
+x=statistics.mean(s)
+y=statistics.median(s)
+z=statistics.mode(s)
+print(x)
+print(y)
+print(z)
+ OUTPUT:
+mean:
+4.428571428571429
+median:
+4
+mode:
+1
