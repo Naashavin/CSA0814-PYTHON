@@ -14,3 +14,8 @@ if ana:
     print("it is anagrams.')
 else:
     print("it is not anagrams.')
+
+OUTPUT:
+enter a string1:silent
+enter a string2:listen
+-->they are anagrams
