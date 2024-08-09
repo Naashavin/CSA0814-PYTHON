@@ -4,7 +4,7 @@ import math
 num = int(input("Enter a number: "))
 
 
-sqrt_num = math.isqrt(num)
+sqrt_num = math.sqrt(num)
 
 
 if sqrt_num * sqrt_num == num:
