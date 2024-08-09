@@ -12,11 +12,10 @@ for word in words:
     ssorted = ''.join(sorted(word))
     
    
-    ag[ssorted.append(word)
+    ag[ssorted].append(word)
 
 
-ag = dict(ag)
-print(ag)
+print(list(ag))
 
 OUTPUT:
 listen,silent,enlist
