@@ -22,3 +22,29 @@ while True:
 print("Uppercase letters:", upper_count)
 print("Lowercase letters:", lower_count)
 print("Digits:", digit_count)
+
+OUTPUT:
+l
+I
+P
+l
+J
+H
+G
+B
+o
+K
+L
+u
+9
+5
+3
+1
+o
+d
+s
+a
+*
+Uppercase letters: 8
+Lowercase letters: 8
+Digits: 4
