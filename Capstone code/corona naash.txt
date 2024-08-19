@@ -1,0 +1,104 @@
+import tkinter as tk
+from tkinter import ttk
+import requests
+from PIL import Image, ImageTk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+def fetch_global_covid_data():
+    url = "https://covid-19-tracking.p.rapidapi.com/v1"
+    headers = {
+        "x-rapidapi-key": "634ef24f07mshc0598f2465d3939p16058cjsn92985c8a46ea",
+        "x-rapidapi-host": "covid-19-tracking.p.rapidapi.com"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an error for bad responses
+        data = response.json()
+        return data
+    except requests.RequestException as e:
+        print(f"Error fetching data: {e}")
+        return None
+
+
+def plot_top_5_countries():
+    data = fetch_global_covid_data()
+    if data:
+        if isinstance(data, list) and len(data) > 0:
+            # Sort countries by total cases
+            sorted_data = sorted(data, key=lambda x: int(x.get('Total Cases_text', '0').replace(',', '')), reverse=True)
+
+            # Get the top 5 countries
+            top_5_data = sorted_data[:5]
+
+            # Extract data for plotting
+            countries = [item.get('Country_text', 'Unknown') for item in top_5_data]
+            cases = [int(item.get('Total Cases_text', '0').replace(',', '')) for item in top_5_data]
+
+            # Create a bar chart for top 5 countries
+            fig, ax = plt.subplots()
+            bars = ax.bar(countries, cases, color='#66b3ff')
+            ax.set_xlabel('Country')
+            ax.set_ylabel('Total Cases')
+            ax.set_title('Top 5 Countries with Highest COVID-19 Cases')
+            plt.xticks(rotation=45, ha='right')  # Rotate x labels to avoid overlap
+
+            # Annotate bars with their values
+            for bar in bars:
+                yval = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width() / 2, yval, f'{yval:,}', va='bottom', ha='center')
+
+            return fig
+    return None
+
+
+def update_plot():
+    fig = plot_top_5_countries()
+    if fig:
+        for widget in frame.winfo_children():
+            if isinstance(widget, FigureCanvasTkAgg):
+                widget.destroy()
+        canvas = FigureCanvasTkAgg(fig, master=frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(pady=10)
+        data_text.set("Data updated successfully.")
+    else:
+        data_text.set("Error fetching global data")
+
+
+# Initialize the main window
+root = tk.Tk()
+root.title("Naash Corona Tracker")
+
+# Set the window size
+root.geometry("600x500")
+
+# Load and set the background image
+bg_image = Image.open("C:\\Users\\Avinaash.A\\Downloads\\83928dcc-6e05-41ea-9e9b-2d238000b613.jpg")
+bg_image = bg_image.resize((1500, 950), Image.Resampling.LANCZOS)
+bg_photo = ImageTk.PhotoImage(bg_image)
+background_label = tk.Label(root, image=bg_photo)
+background_label.place(relwidth=1, relheight=1)
+
+# Frame for the content
+frame = tk.Frame(root, bg='white', padx=20, pady=20)
+frame.place(relx=0.5, rely=0.5, anchor='center')
+
+# Title label
+title_label = tk.Label(frame, text="Top 5 Countries with Highest COVID-19 Cases", font=("Helvetica", 16, "bold"),
+                       bg='white')
+title_label.pack(pady=10)
+
+# Button to update plot
+update_button = tk.Button(frame, text="Update Data", command=update_plot, bg="#4CAF50", fg="white",
+                          font=("Helvetica", 12, "bold"), relief="flat", width=15, height=2)
+update_button.pack(pady=10)
+
+# Text to display status
+data_text = tk.StringVar()
+data_label = tk.Label(frame, textvariable=data_text, font=("Helvetica", 12), bg='white', wraplength=300)
+data_label.pack(pady=10)
+
+# Run the application
+root.mainloop()

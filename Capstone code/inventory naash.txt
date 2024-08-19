@@ -1,0 +1,337 @@
+import sqlite3
+
+def initialize_database():
+    """Create the SQLite database and the products table if they don't exist."""
+    conn = sqlite3.connect('inventory.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS products (
+        product_id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        quantity INTEGER NOT NULL,
+        cost_per_quantity REAL NOT NULL
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+def add_product(product_id, name, quantity, cost_per_quantity):
+    """Insert a new product into the database."""
+    try:
+        conn = sqlite3.connect('inventory.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+        INSERT INTO products (product_id, name, quantity, cost_per_quantity)
+        VALUES (?, ?, ?, ?)
+        ''', (product_id, name, quantity, cost_per_quantity))
+        conn.commit()
+        conn.close()
+        print("Product added successfully.")
+    except sqlite3.IntegrityError:
+        print("Error: Product with this ID or name already exists.")
+    except Exception as e:
+        print("Error:", str(e))
+
+def update_product(product_id, new_quantity=None, new_cost=None):
+    """Update an existing product's quantity and/or cost in the database."""
+    try:
+        conn = sqlite3.connect('inventory.db')
+        cursor = conn.cursor()
+        if new_quantity is not None and new_cost is not None:
+            cursor.execute('''
+            UPDATE products
+            SET quantity = ?, cost_per_quantity = ?
+            WHERE product_id = ?
+            ''', (new_quantity, new_cost, product_id))
+        elif new_quantity is not None:
+            cursor.execute('''
+            UPDATE products
+            SET quantity = ?
+            WHERE product_id = ?
+            ''', (new_quantity, product_id))
+        conn.commit()
+        conn.close()
+        print("Product updated successfully.")
+    except Exception as e:
+        print("Error:", str(e))
+
+def delete_product(product_id):
+    """Delete a product from the database using its ID."""
+    try:
+        conn = sqlite3.connect('inventory.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+        DELETE FROM products
+        WHERE product_id = ?
+        ''', (product_id,))
+        conn.commit()
+        conn.close()
+        print("Product deleted successfully.")
+    except Exception as e:
+        print("Error:", str(e))
+
+def view_inventory():
+    """Retrieve and print all products from the database."""
+    try:
+        conn = sqlite3.connect('inventory.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT product_id, name, quantity, cost_per_quantity
+        FROM products
+        ''')
+        rows = cursor.fetchall()
+        conn.close()
+        if rows:
+            print("Inventory:")
+            for row in rows:
+                product_id, name, quantity, cost_per_quantity = row
+                total_cost = quantity * cost_per_quantity
+                print(f"ID: {product_id}, Name: {name}, Quantity: {quantity}, Total Cost: {total_cost:.2f}")
+        else:
+            print("No products found in inventory.")
+    except Exception as e:
+        print("Error:", str(e))
+
+def main():
+    initialize_database()
+    # Example operations:
+    add_product(1, "Product A", 100, 10.0)
+    add_product(2, "Product B", 50, 20.0)
+    view_inventory()
+    update_product(1, new_quantity=150)
+    view_inventory()
+    delete_product(2)
+    view_inventory()
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+from PIL import Image, ImageTk
+import sqlite3
+
+# Initialize the database
+def initialize_database():
+    conn = sqlite3.connect('inventory.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS products (
+        product_id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        quantity INTEGER NOT NULL,
+        cost_per_quantity REAL NOT NULL
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Add Product Function
+def add_product():
+    product_id = product_id_entry.get()
+    name = name_entry.get()
+    quantity = quantity_entry.get()
+    cost_per_quantity = cost_entry.get()
+
+    if not product_id or not name or not quantity or not cost_per_quantity:
+        messagebox.showwarning("Input Error", "Please fill all fields")
+        return
+
+    try:
+        conn = sqlite3.connect('inventory.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+        INSERT INTO products (product_id, name, quantity, cost_per_quantity)
+        VALUES (?, ?, ?, ?)
+        ''', (product_id, name, int(quantity), float(cost_per_quantity)))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Success", "Product added successfully")
+        clear_entries()
+    except sqlite3.IntegrityError:
+        messagebox.showwarning("Duplicate ID", "Product ID already exists")
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+# View Inventory Function
+def view_inventory():
+    form_frame.pack_forget()
+    inventory_frame.pack(fill='both', expand=True)
+    view_inventory_data()
+
+def view_inventory_data():
+    for widget in inventory_frame.winfo_children():
+        widget.destroy()
+
+    conn = sqlite3.connect('inventory.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT product_id, name, quantity, cost_per_quantity
+    FROM products
+    ''')
+    rows = cursor.fetchall()
+    conn.close()
+
+    if rows:
+        columns = ['Product ID', 'Name', 'Quantity', 'Total Cost']
+        tree = ttk.Treeview(inventory_frame, columns=columns, show='headings')
+        for col in columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=150, anchor='center')
+
+        for row in rows:
+            total_cost = row[2] * row[3]
+            tree.insert('', 'end', values=(row[0], row[1], row[2], f'{total_cost:.2f}'))
+
+        tree.pack(padx=20, pady=20, fill='both', expand=True)
+    else:
+        messagebox.showinfo("No Data", "No products found in inventory")
+
+    back_button = tk.Button(inventory_frame, text="Back to Entry", command=show_entry_form, bg='lightblue')
+    back_button.pack(pady=10)
+
+# Show Entry Form Function
+def show_entry_form():
+    inventory_frame.pack_forget()
+    form_frame.pack(fill='both', expand=True)
+
+# Delete Product Function
+def delete_product():
+    product_id = product_id_entry.get()
+
+    if not product_id:
+        messagebox.showwarning("Input Error", "Please enter Product ID")
+        return
+
+    try:
+        conn = sqlite3.connect('inventory.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+        DELETE FROM products
+        WHERE product_id = ?
+        ''', (product_id,))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Success", "Product deleted successfully")
+        clear_entries()
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+# Update Product Function
+def update_product():
+    product_id = product_id_entry.get()
+    new_quantity = quantity_entry.get()
+    new_cost = cost_entry.get()
+
+    if not product_id or not new_quantity:
+        messagebox.showwarning("Input Error", "Please enter Product ID and new Quantity")
+        return
+
+    try:
+        conn = sqlite3.connect('inventory.db')
+        cursor = conn.cursor()
+        if new_cost:
+            cursor.execute('''
+            UPDATE products
+            SET quantity = ?, cost_per_quantity = ?
+            WHERE product_id = ?
+            ''', (int(new_quantity), float(new_cost), product_id))
+        else:
+            cursor.execute('''
+            UPDATE products
+            SET quantity = ?
+            WHERE product_id = ?
+            ''', (int(new_quantity), product_id))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Success", "Product updated successfully")
+        clear_entries()
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+# Clear Entries Function
+def clear_entries():
+    product_id_entry.delete(0, tk.END)
+    name_entry.delete(0, tk.END)
+    quantity_entry.delete(0, tk.END)
+    cost_entry.delete(0, tk.END)
+
+# Create the main window
+root = tk.Tk()
+root.title("Naash Inventory Management")
+root.geometry("800x600")
+
+# Set up background image
+bg_image = Image.open("C:\\Users\\Avinaash.A\\Downloads\\_e78bf777-2242-4ae7-8607-fdaaf44d8e9d.jpeg")
+bg_image = bg_image.resize((1560, 1000), Image.Resampling.LANCZOS)
+bg_image = ImageTk.PhotoImage(bg_image)
+
+# Canvas for background image
+canvas = tk.Canvas(root, width=800, height=600)
+canvas.pack(fill='both', expand=True)
+canvas.create_image(0, 0, anchor='nw', image=bg_image)
+
+# Create a frame for the form
+form_frame = tk.Frame(root, bg='white')
+form_frame.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.8, relheight=0.8)
+
+# Create a frame for the inventory display
+inventory_frame = tk.Frame(root, bg='white')
+
+# Add widgets to the form frame using grid layout
+tk.Label(form_frame, text="Product ID:", bg='white').grid(row=0, column=0, padx=10, pady=10, sticky='e')
+product_id_entry = tk.Entry(form_frame)
+product_id_entry.grid(row=0, column=1, padx=10, pady=10)
+
+tk.Label(form_frame, text="Name:", bg='white').grid(row=1, column=0, padx=10, pady=10, sticky='e')
+name_entry = tk.Entry(form_frame)
+name_entry.grid(row=1, column=1, padx=10, pady=10)
+
+tk.Label(form_frame, text="Quantity:", bg='white').grid(row=2, column=0, padx=10, pady=10, sticky='e')
+quantity_entry = tk.Entry(form_frame)
+quantity_entry.grid(row=2, column=1, padx=10, pady=10)
+
+tk.Label(form_frame, text="Cost per Quantity:", bg='white').grid(row=3, column=0, padx=10, pady=10, sticky='e')
+cost_entry = tk.Entry(form_frame)
+cost_entry.grid(row=3, column=1, padx=10, pady=10)
+
+# Add buttons to the form frame
+button_frame = tk.Frame(form_frame, bg='white')
+button_frame.grid(row=4, column=0, columnspan=2, pady=10)
+
+add_button = tk.Button(button_frame, text="Add Product", command=add_product, bg='lightblue')
+add_button.pack(side='left', padx=5)
+
+update_button = tk.Button(button_frame, text="Update Product", command=update_product, bg='lightyellow')
+update_button.pack(side='left', padx=5)
+
+delete_button = tk.Button(button_frame, text="Delete Product", command=delete_product, bg='lightcoral')
+delete_button.pack(side='left', padx=5)
+
+view_button = tk.Button(button_frame, text="View Inventory", command=view_inventory, bg='lightgreen')
+view_button.pack(side='left', padx=5)
+
+# Watermark on Canvas
+canvas.create_text(400, 580, text="Naash Inventory Management", fill="black", font=('Arial', 20, 'italic'))
+
+# Initialize database and run the main loop
+initialize_database()
+root.mainloop()

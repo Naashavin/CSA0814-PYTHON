@@ -1,0 +1,168 @@
+import requests
+import matplotlib.pyplot as plt
+from tkinter import Tk, Label, OptionMenu, StringVar, Button, Frame
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from datetime import datetime
+from PIL import Image, ImageTk
+
+# Define the API endpoint and your API key
+url = "https://weatherapi-com.p.rapidapi.com/current.json"
+headers = {
+    "x-rapidapi-key": "634ef24f07mshc0598f2465d3939p16058cjsn92985c8a46ea",
+    "x-rapidapi-host": "weatherapi-com.p.rapidapi.com"
+}
+
+# Initialize lists to store weather data
+times = []
+temperatures = []
+humidities = []
+rainfalls = []
+colors = []
+
+# Season images paths
+season_images = {
+    'summer': "C:\\Users\\Avinaash.A\\OneDrive\\Pictures\\Screenshots\\Screenshot 2024-08-17 093204.png",
+    'winter': "C:\\Users\\Avinaash.A\\OneDrive\\Pictures\\Screenshots\\Screenshot 2024-08-17 093226.png",
+    'monsoon': "C:\\Users\\Avinaash.A\\OneDrive\\Pictures\\Screenshots\\Screenshot 2024-08-17 093822.png",
+    'autumn': "C:\\Users\\Avinaash.A\\OneDrive\\Pictures\\Screenshots\\Screenshot 2024-08-17 093213.png"
+}
+
+# Function to fetch weather data
+def fetch_weather(city):
+    querystring = {"q": city}
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()
+        data = response.json()
+
+        current = data['current']
+        temperature = current['temp_c']
+        humidity = current['humidity']
+        rainfall = current.get('precip_mm', 0)
+        condition = current['condition']['text'].lower()
+
+        # Determine graph color based on weather condition
+        if 'rain' in condition:
+            color = 'blue'
+        elif 'cloud' in condition:
+            color = 'gray'
+        else:
+            color = 'orange'
+
+        return temperature, humidity, rainfall, color
+
+    except requests.exceptions.RequestException as e:
+        print(f"API request error: {e}")
+        return None, None, None, 'black'
+    except ValueError as e:
+        print(f"Value error: {e}")
+        return None, None, None, 'black'
+
+# Function to determine the season
+def get_season(temperature):
+    if temperature >= 30:
+        return 'summer'
+    elif temperature <= 10:
+        return 'winter'
+    elif 10 < temperature < 30:
+        if temperature < 20:
+            return 'autumn'
+        else:
+            return 'monsoon'
+    return 'autumn'
+
+# Function to update the plot and weather information
+def update_plot():
+    city = city_var.get()
+    temperature, humidity, rainfall, color = fetch_weather(city)
+
+    if temperature is not None:
+        times.append(datetime.now().strftime('%H:%M:%S'))
+        temperatures.append(temperature)
+        humidities.append(humidity)
+        rainfalls.append(rainfall)
+        colors.append(color)
+
+        ax.clear()
+        ax.plot(times, temperatures, color='red', label='Temperature (°C)')
+        ax.plot(times, humidities, color='green', label='Humidity (%)')
+        ax.plot(times, rainfalls, color='blue', label='Rainfall (mm)')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Value')
+        ax.legend(loc='upper left')
+        ax.set_title(f'Weather Data for {city}')
+        plt.tight_layout()
+
+        # Add semi-opaque watermark
+        plt.text(0.5, 0.5, 'Naash Weather Tracking', fontsize=40, color='gray', alpha=0.3,
+                 ha='center', va='center', transform=ax.transAxes)
+
+        # Update the text labels with the latest values
+        current_temperature.set(f"Temperature: {temperature} °C")
+        current_humidity.set(f"Humidity: {humidity} %")
+        current_rainfall.set(f"Rainfall: {rainfall} mm")
+
+        # Determine the season
+        season = get_season(temperature)
+        season_image_path = season_images.get(season, "C:\\Users\\Avinaash.A\\Downloads\\Design.jpeg")
+
+        # Load the image and display it
+        image = Image.open(season_image_path)
+        season_photo = ImageTk.PhotoImage(image)
+        season_label.config(image=season_photo)
+        season_label.image = season_photo  # Keep a reference to avoid garbage collection
+
+        # Redraw the canvas
+        canvas.draw()
+
+    root.after(60000, update_plot)
+
+# Set up the GUI
+def setup_gui():
+    global city_var, root, canvas, fig, ax
+    global current_temperature, current_humidity, current_rainfall, season_label
+
+    root = Tk()
+    root.title("Naash Weather Tracker")
+
+    control_frame = Frame(root, bg='white')
+    control_frame.pack(side='top', fill='x')
+
+    Label(control_frame, text="Select City:", bg='white').pack(side='left')
+
+    city_var = StringVar(root)
+    city_var.set("Mumbai")
+
+    city_dropdown = OptionMenu(control_frame, city_var, "Mumbai", "Delhi", "Bangalore", "Kolkata", "Chennai",
+                               "Hyderabad", "Lucknow", "Amritsar", "Jaipur", "Shimla")
+    city_dropdown.pack(side='left')
+
+    refresh_button = Button(control_frame, text="Refresh", command=update_plot)
+    refresh_button.pack(side='left')
+
+    info_frame = Frame(root, bg='white')
+    info_frame.pack(side='top', fill='x')
+
+    current_temperature = StringVar()
+    current_humidity = StringVar()
+    current_rainfall = StringVar()
+
+    Label(info_frame, textvariable=current_temperature, bg='white', font=('Helvetica', 16)).pack(side='left')
+    Label(info_frame, textvariable=current_humidity, bg='white', font=('Helvetica', 16)).pack(side='left')
+    Label(info_frame, textvariable=current_rainfall, bg='white', font=('Helvetica', 16)).pack(side='left')
+
+    season_label = Label(root)
+    season_label.pack(side='bottom', fill='x')
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    canvas = FigureCanvasTkAgg(fig, master=root)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side='bottom', fill='both', expand=True)
+
+    update_plot()
+    root.mainloop()
+
+# Run the GUI setup
+setup_gui()

@@ -1,0 +1,81 @@
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk
+import requests
+import json
+
+
+def get_traffic_data(origin, destination):
+    """Fetches traffic data using Google Maps Distance Matrix API"""
+    api_key = "AIzaSyBc4iRkQEiUKxWs60F-HjxIvtQ__a1kn4s"  # Your API key
+    url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin}&destinations={destination}&key={api_key}"
+
+    response = requests.get(url)
+    data = json.loads(response.text)
+    return data
+
+
+def process_traffic_data(data):
+    """Processes the API response to extract traffic information"""
+    distance = data['rows'][0]['elements'][0]['distance']['text']
+    duration = data['rows'][0]['elements'][0]['duration']['text']
+    traffic_status = data['rows'][0]['elements'][0]['status']
+    return distance, duration, traffic_status
+
+
+def update_traffic_data():
+    origin = origin_entry.get()
+    destination = destination_entry.get()
+    traffic_data = get_traffic_data(origin, destination)
+    distance, duration, traffic_status = process_traffic_data(traffic_data)
+
+    distance_label.config(text=f"Distance: {distance}")
+    duration_label.config(text=f"Duration: {duration}")
+    status_label.config(text=f"Traffic Status: {traffic_status}")
+
+
+# Create the main window
+root = tk.Tk()
+root.title("Naash Maps")  # Set the window title
+
+# Load and set the background image
+bg_image = Image.open("C:\\Users\\Avinaash.A\\Downloads\\th.jpg") # Replace with your image path
+bg_photo = ImageTk.PhotoImage(bg_image)
+bg_label = tk.Label(root, image=bg_photo)
+bg_label.place(relwidth=1, relheight=1)  # Cover the entire window
+
+# Create frames for widgets
+frame = tk.Frame(root, bg='white', padx=20, pady=20)
+frame.place(relx=0.5, rely=0.5, anchor='center')  # Center the frame
+
+# Widgets for input and output
+origin_label = tk.Label(frame, text="Origin:", font=('Arial', 12))
+origin_label.grid(row=0, column=0, padx=5, pady=5, sticky='e')
+origin_entry = tk.Entry(frame, font=('Arial', 12), width=25)
+origin_entry.grid(row=0, column=1, padx=5, pady=5)
+
+destination_label = tk.Label(frame, text="Destination:", font=('Arial', 12))
+destination_label.grid(row=1, column=0, padx=5, pady=5, sticky='e')
+destination_entry = tk.Entry(frame, font=('Arial', 12), width=25)
+destination_entry.grid(row=1, column=1, padx=5, pady=5)
+
+# Aesthetic button style
+button_style = ttk.Style()
+button_style.configure('TButton', font=('Arial', 12, 'bold'), padding=10, relief='flat', background='#4CAF50',
+                       foreground='white')
+button_style.map('TButton', background=[('active', '#45a049')])
+
+get_data_button = ttk.Button(frame, text="Get Traffic Data", command=update_traffic_data, style='TButton')
+get_data_button.grid(row=2, column=0, columnspan=2, pady=10)
+
+distance_label = tk.Label(frame, text="Distance: ", font=('Arial', 12))
+distance_label.grid(row=3, column=0, columnspan=2, pady=5)
+
+duration_label = tk.Label(frame, text="Duration: ", font=('Arial', 12))
+duration_label.grid(row=4, column=0, columnspan=2, pady=5)
+
+status_label = tk.Label(frame, text="Traffic Status: ", font=('Arial', 12))
+status_label.grid(row=5, column=0, columnspan=2, pady=5)
+
+# Run the Tkinter event loop
+root.mainloop()
