@@ -1,0 +1,17 @@
+vowels = "aeiouAEIOU"
+se = "booyaka"
+
+for i in se:
+    if i in vowels:
+        print(i, "^")
+    else:
+        print(i, "@")
+
+OUTPUT:
+b @
+o ^
+o ^
+y @
+a ^
+k @
+a ^
