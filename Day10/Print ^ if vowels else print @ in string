@@ -1,17 +1,14 @@
 vowels = "aeiouAEIOU"
-se = "booyaka"
+se = "Booyaka"
 
-for i in se:
-    if i in vowels:
-        print(i, "^")
+transformed = ''
+for char in se:
+    if char in vowels:
+        transformed += char + "^"
     else:
-        print(i, "@")
+        transformed += char + "@"
+
+print(transformed)
 
 OUTPUT:
-b @
-o ^
-o ^
-y @
-a ^
-k @
-a ^
+B@o^o^y@a^k@a^
