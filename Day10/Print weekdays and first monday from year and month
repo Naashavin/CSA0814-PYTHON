@@ -10,3 +10,8 @@ offset = (7 - first_day.weekday() + 0) % 7
 first_monday_date = first_day + timedelta(days=offset)
 print(f"Number of weekdays: {weekdays_count}")
 print(f"First Monday: {first_monday_date.strftime('%Y-%m-%d')}")
+
+OUTPUT:
+Year: 2024, Month: 8
+Number of weekdays: 22
+First Monday: 2024-08-05
