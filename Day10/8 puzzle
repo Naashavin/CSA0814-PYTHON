@@ -1,0 +1,14 @@
+from itertools import permutations
+
+g = "123406758"
+go = "123456780"
+
+for i in permutations(g):
+    state = ''.join(i)
+    print("visited", state)
+    if state == go:
+        print("goal found")
+        break
+else:
+    print("goal not found")
+                                                
