@@ -1,0 +1,5 @@
+from itertools import permutations
+d=[[1,2,5,5,2],[4,5,2,7,4],[8,4,2,5,7,4,]]
+p=range(len(d))
+r=min((sum(d[a][b]for a,b in zip(t,t[1:]+t[:1])),t)for t in permutations(p))
+print(r[1],r[0])     #tsp
