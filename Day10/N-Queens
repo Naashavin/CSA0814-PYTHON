@@ -1,0 +1,15 @@
+N = 8
+board = []
+stack = [([], 0)]
+
+while stack:
+    b, r = stack.pop()
+    if r == N:
+        board = b
+        break
+    for c in range(N):
+        if all(c != x and abs(c - x) != r - i for i, x in enumerate(b)):
+            stack.append((b + [c], r + 1))
+
+for r in range(N):
+    print(''.join('Q' if board[r] == c else '.' for c in range(N)))
