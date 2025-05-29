@@ -1,0 +1,8 @@
+t = {'Grandfather': ["dad", "uncle"], "dad": ['me', 'brother'], "uncle": ["cousin"]}
+s = ['Grandfather']
+
+while s:
+    n = s.pop()
+    for c in t.get(n, []):
+        print(n, "has", c )
+        s.append(c)     #Family tree
