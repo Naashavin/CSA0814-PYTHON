@@ -1,0 +1,19 @@
+tree = {'A': ['B', 'C'], 'B': [3, 5], 'C': [6, 9]}
+s = [('A', 0, float('-inf'), float('inf'), True)]
+v = {}
+
+while s:
+    n, d, a, b, m = s.pop()
+    if isinstance(n, int):
+        v[(n, d)] = n
+        continue
+    if (n, d) not in v:
+        v[(n, d)] = []
+        s.append((n, d, a, b, m))
+        for c in reversed(tree[n]):
+            s.append((c, d+1, a, b, not m))
+    else:
+        cs = [v.get((c, d+1), c) if isinstance(c, int) else v[(c, d+1)] for c in tree[n]]
+        v[(n, d)] = max(cs) if m else min(cs)
+
+print("Optimal maximum value:", v[('A', 0)])
