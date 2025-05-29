@@ -1,0 +1,16 @@
+regions = ['A', 'B', 'C', 'D', 'E']
+colors = ['Red', 'Green', 'Blue']
+adj = {'A': ['B', 'C'], 'B': ['A', 'C', 'D'], 'C': ['A', 'B', 'E'], 'D': ['B', 'E'], 'E': ['C', 'D']}
+stack = [({}, 0)]
+
+while stack:
+    assign, i = stack.pop()
+    if i == len(regions):
+        print("Solution:", assign)
+        break
+    r = regions[i]
+    for col in colors:
+        if all(assign.get(n) != col for n in adj[r]):
+            new = assign.copy()
+            new[r] = col
+            stack.append((new, i + 1))
