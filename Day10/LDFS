@@ -1,0 +1,14 @@
+g={'1':['1','2'],"2":['2','3']}
+l=2
+go='3'
+s=[('1',0)]
+while s:
+    n,d=s.pop()
+    print("visited",{n})
+    if n==go:
+        print("goal found")
+        break
+    if d<l:
+        s+=[(c,d+1) for c in reversed(g[n])]
+else:
+    print("goal not found")     #ldfs
